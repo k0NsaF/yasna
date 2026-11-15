@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -14,7 +15,10 @@ from ..security import get_current_master, get_current_family
 router = APIRouter(tags=["Абонементы"])
 
 
-# Мастер создаёт абонемент
+# ---------- МАСТЕР ----------
+
+# Мастер создаёт новый абонемент.
+# До оплаты он неактивен.
 @router.post(
     "/api/master/subscriptions",
     response_model=SubscriptionResponse,
@@ -54,17 +58,21 @@ def create_subscription(
         used_lessons=0,
         price=payload.price,
         expires_at=payload.expires_at,
-        is_active=True,
+        is_active=False,
     )
 
-    db.add(subscription)
-    db.commit()
-    db.refresh(subscription)
+    try:
+        db.add(subscription)
+        db.commit()
+        db.refresh(subscription)
+        return subscription
 
-    return subscription
+    except Exception:
+        db.rollback()
+        raise
 
 
-# Мастер смотрит все абонементы
+# Мастер смотрит все абонементы.
 @router.get(
     "/api/master/subscriptions",
     response_model=list[SubscriptionResponse],
@@ -80,7 +88,9 @@ def get_all_subscriptions(
     )
 
 
-# Родитель видит абонементы только своей семьи
+# ---------- РОДИТЕЛЬ ----------
+
+# Родитель видит абонементы только своей семьи.
 @router.get(
     "/api/family/subscriptions",
     response_model=list[SubscriptionResponse],
@@ -97,7 +107,7 @@ def get_family_subscriptions(
     )
 
 
-# Родитель видит общий баланс занятий своей семьи
+# Родитель видит общий баланс занятий своей семьи.
 @router.get(
     "/api/family/subscriptions/balance",
     response_model=SubscriptionBalance,
@@ -115,8 +125,13 @@ def get_family_subscription_balance(
         .all()
     )
 
-    total = sum(item.total_lessons for item in subscriptions)
-    used = sum(item.used_lessons for item in subscriptions)
+    total = sum(
+        item.total_lessons for item in subscriptions
+    )
+
+    used = sum(
+        item.used_lessons for item in subscriptions
+    )
 
     return {
         "total_lessons": total,

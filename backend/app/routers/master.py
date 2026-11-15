@@ -39,6 +39,33 @@ def master_me(_: bool = Depends(get_current_master)):
     return {"authenticated": True, "role": "master"}
 
 
+@router.get("/families")
+def get_families(
+    db: Session = Depends(get_db),
+    _: bool = Depends(get_current_master),
+):
+    families = db.query(Family).order_by(Family.id).all()
+    children = db.query(Child).order_by(Child.id).all()
+
+    children_by_family = {}
+
+    for child in children:
+        child_name = " ".join(
+            part for part in [child.first_name, child.last_name] if part
+        )
+        children_by_family.setdefault(child.family_id, []).append(child_name)
+
+    return [
+        {
+            "id": family.id,
+            "name": family.name,
+            "phone": family.phone,
+            "children": children_by_family.get(family.id, []),
+        }
+        for family in families
+    ]
+
+
 @router.post(
     "/families",
     response_model=FamilyResponse,

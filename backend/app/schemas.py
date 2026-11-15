@@ -2,9 +2,9 @@
 from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from typing import Optional
 
 
-# Общая настройка: схемы могут читать данные из SQLAlchemy-моделей.
 class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -140,22 +140,27 @@ class SubscriptionBalance(BaseModel):
 # ---------- ПЛАТЕЖИ ----------
 
 class PaymentCreate(BaseModel):
-    family_id: int = Field(gt=0)
-    subscription_id: int | None = Field(default=None, gt=0)
-    amount: Decimal = Field(gt=0)
-    payment_method: str = Field(default="demo", max_length=30)
+    family_id: int
+    subscription_id: Optional[int] = None
+    booking_id: Optional[int] = None
+    amount: Decimal
+    payment_method: str = "demo"
 
 
-class PaymentResponse(ORMModel):
+class PaymentResponse(BaseModel):
     id: int
     family_id: int
-    subscription_id: int | None = None
+    subscription_id: Optional[int] = None
+    booking_id: Optional[int] = None
     amount: Decimal
     status: str
     payment_method: str
-    external_payment_id: str | None = None
+    external_payment_id: Optional[str] = None
     credited: bool
     created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class PaymentStatusUpdate(BaseModel):

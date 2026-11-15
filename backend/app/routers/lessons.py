@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Lesson, Booking
+from ..models import Lesson, Booking, Child
 from ..schemas import LessonCreate, LessonResponse, LessonPublicResponse
 from ..security import get_current_master, get_current_family
 
@@ -36,6 +36,10 @@ def lesson_with_places(lesson: Lesson, db: Session):
     }
 
 
+# ==========================================
+# МАСТЕР: СОЗДАНИЕ ЗАНЯТИЯ
+# ==========================================
+
 @router.post(
     "/api/master/lessons",
     response_model=LessonResponse,
@@ -59,8 +63,13 @@ def create_lesson(
     db.add(lesson)
     db.commit()
     db.refresh(lesson)
+
     return lesson
 
+
+# ==========================================
+# МАСТЕР: ПРОСМОТР ВСЕХ ЗАНЯТИЙ
+# ==========================================
 
 @router.get(
     "/api/master/lessons",
@@ -75,8 +84,55 @@ def master_lessons(
         .order_by(Lesson.starts_at)
         .all()
     )
-    return [lesson_with_places(lesson, db) for lesson in lessons]
 
+    return [
+        lesson_with_places(lesson, db)
+        for lesson in lessons
+    ]
+
+
+# ==========================================
+# МАСТЕР: ДЕТИ, ЗАПИСАННЫЕ НА ЗАНЯТИЕ
+# ==========================================
+
+@router.get("/api/master/lessons/{lesson_id}/bookings")
+def lesson_bookings(
+    lesson_id: int,
+    db: Session = Depends(get_db),
+    master=Depends(get_current_master),
+):
+    records = (
+        db.query(Booking, Child)
+        .join(Child, Booking.child_id == Child.id)
+        .filter(
+            Booking.lesson_id == lesson_id,
+            Booking.status == "booked",
+        )
+        .order_by(Child.first_name)
+        .all()
+    )
+
+    result = []
+
+    for booking, child in records:
+        child_name = " ".join(
+            part
+            for part in [child.first_name, child.last_name]
+            if part
+        )
+
+        result.append({
+            "booking_id": booking.id,
+            "child_name": child_name,
+        })
+
+    return result
+
+
+# ==========================================
+# ПУБЛИЧНОЕ РАСПИСАНИЕ
+# Авторизация не требуется
+# ==========================================
 
 @router.get(
     "/api/lessons",
@@ -84,17 +140,23 @@ def master_lessons(
 )
 def public_lessons(
     db: Session = Depends(get_db),
-    family=Depends(get_current_family),
 ):
-    """Расписание для авторизованной семьи."""
     lessons = (
         db.query(Lesson)
         .filter(Lesson.is_active.is_(True))
         .order_by(Lesson.starts_at)
         .all()
     )
-    return [lesson_with_places(lesson, db) for lesson in lessons]
 
+    return [
+        lesson_with_places(lesson, db)
+        for lesson in lessons
+    ]
+
+
+# ==========================================
+# ПРОСМОТР ОДНОГО ЗАНЯТИЯ СЕМЬЁЙ
+# ==========================================
 
 @router.get(
     "/api/lessons/{lesson_id}",

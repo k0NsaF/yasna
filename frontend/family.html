@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ясна | Кабинет родителя</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body style="background: var(--bg);">
 
-    <header style="background: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <header
+        style="background: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div style="display: flex; align-items: center; gap: 15px;">
             <img src="img/yasna-logo.jpg" alt="Ясна" style="height: 40px; border-radius: 8px;">
             <h1 style="font-size: 18px; margin: 0;" id="family-title">Личный кабинет</h1>
@@ -16,13 +19,14 @@
         <div style="display: flex; align-items: center; gap: 15px;">
             <div style="position: relative; cursor: pointer;" onclick="showToast('У вас 1 новое уведомление')">
                 <span style="font-size: 24px;">🔔</span>
-                <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
+                <span
+                    style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
             </div>
         </div>
     </header>
 
     <main style="max-width: 800px; margin: 20px auto; padding: 0 15px;">
-        
+
         <div class="card" style="margin-bottom: 20px; padding: 15px 20px;">
             <div style="color: var(--gray); font-size: 14px; margin-bottom: 10px;">Мои дети:</div>
             <div id="children-tabs" style="display: flex; gap: 10px;"></div>
@@ -42,9 +46,11 @@
         <div class="card" style="margin-bottom: 20px;">
             <h3 style="margin-top: 0; margin-bottom: 15px;">Ближайшие занятия</h3>
             <div id="upcoming-lessons" style="display: flex; flex-direction: column; gap: 10px;"></div>
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap;">
+            <div
+                style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn" onclick="window.location.href='book.html'">Записаться на занятие</button>
-                <button class="btn btn-gray" onclick="showToast('Переход к оплате')">Оплатить абонемент</button>
+                <button class="btn btn-gray" onclick="openPaymentModal('subscription')">Оплатить абонемент</button>
+                <button class="btn btn-gray" onclick="openPaymentModal('booking')">Оплатить разовое занятие</button>
             </div>
         </div>
 
@@ -55,8 +61,69 @@
 
     </main>
 
+    <!-- Окно демонстрационной оплаты -->
+    <div class="modal-overlay" id="modal-family-payment">
+        <div class="modal-content">
+            <h3>Демонстрационная оплата</h3>
+
+            <p style="color: var(--gray); font-size: 14px;">
+                Это учебная имитация оплаты. Реальные деньги не списываются.
+            </p>
+
+            <div class="form-group">
+                <label>Что оплачиваем?</label>
+                <select class="form-input" id="payment-type" onchange="loadPaymentOptions()">
+                    <option value="subscription">Абонемент</option>
+                    <option value="booking">Разовое занятие</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Выберите вариант</label>
+                <select class="form-input" id="payment-item">
+                    <option value="">Загрузка...</option>
+                </select>
+            </div>
+
+            <div id="payment-amount" style="font-weight: bold; margin: 15px 0;"></div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-block" onclick="simulateFamilyPayment()">
+                    Оплатить
+                </button>
+                <button type="button" class="btn btn-gray btn-block" onclick="closeModal('modal-family-payment')">
+                    Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div>
+                <div class="footer-brand">Ясна — столярная мастерская</div>
+                <div class="footer-description">
+                    Создаём, учимся и проводим время с пользой
+                </div>
+            </div>
+
+            <div class="footer-contacts">
+                <strong>Контакты</strong>
+                <a href="tel:+79124120005">+7 912 412-00-05</a>
+                <a href="https://vk.ru/yasna.vibe" target="_blank" rel="noopener noreferrer">
+                    Мы ВКонтакте
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2026 Ясна. Столярная мастерская.
+        </div>
+    </footer>
+
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script src="js/family.js"></script>
 </body>
+
 </html>

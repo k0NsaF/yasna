@@ -179,21 +179,44 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id = Column(Integer, primary_key=True, index=True)
-    family_id = Column(Integer, ForeignKey("families.id"), nullable=False)
+
+    family_id = Column(
+        Integer,
+        ForeignKey("families.id"),
+        nullable=False
+    )
+
     subscription_id = Column(
         Integer,
         ForeignKey("subscriptions.id"),
         nullable=True
     )
+
+    booking_id = Column(
+        Integer,
+        ForeignKey("bookings.id"),
+        nullable=True
+    )
+
     amount = Column(Numeric(10, 2), nullable=False)
+
     status = Column(String(20), default="pending")
+
     payment_method = Column(String(30), default="demo")
-    external_payment_id = Column(String(150), unique=True, nullable=True)
+
+    external_payment_id = Column(
+        String(150),
+        unique=True,
+        nullable=True
+    )
+
     credited = Column(Boolean, default=False)
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
-
 # 11. Чеки
+
+
 class Receipt(Base):
     __tablename__ = "receipts"
 

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход | Ясна</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #F9FAFB;">
 
     <div class="card" style="width: 100%; max-width: 400px;">
@@ -13,7 +15,7 @@
             <img src="img/yasna-logo.jpg" alt="Ясна" style="height: 60px; border-radius: 8px;">
             <h2 style="margin-top: 15px;">Вход для мастера</h2>
         </div>
-        
+
         <form id="login-form">
             <div class="form-group">
                 <label>Логин</label>
@@ -29,16 +31,36 @@
 
     <script src="js/ui.js"></script>
     <script>
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const password = document.getElementById('password').value;
+
             try {
-                // Тут будет реальный запрос, а пока просто сохраняем мок-токен
-                localStorage.setItem("master_token", "test-master-token");
-                window.location.href = "master.html";
+                const response = await fetch('http://localhost:8000/api/master/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Ошибка входа');
+                }
+
+                localStorage.setItem('master_token', data.access_token);
+                window.location.href = 'master.html';
+
             } catch (err) {
                 showToast(err.message, 'error');
             }
         });
+
     </script>
 </body>
+
 </html>
